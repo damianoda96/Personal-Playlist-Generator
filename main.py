@@ -92,14 +92,14 @@ for i in range(len(artists)):
 
 df3 = pd.DataFrame(targets, columns=['target'])
 
-if(user_id == "p0q8ccwzh5xvxzgq2jtd41abr")
-{
+if(user_id == "p0q8ccwzh5xvxzgq2jtd41abr"):
+    
     test_df = pd.read_csv('data/deven.csv')
-}
-else
-{
+
+else:
+
     test_df = pd.read_csv('data/nick.csv')
-}
+
 
 train_data, test_data = train_test_split(test_df, test_size = .60)
 
