@@ -65,9 +65,7 @@ while tracks['next']:
 #print(item["track"]["id"])
 #print(item["track"]["artists"])
 
-
 features = []
-
 
 for i in range(0, len(ids), 50):
     
@@ -76,7 +74,6 @@ for i in range(0, len(ids), 50):
     for track in audio_features:
         
         features.append(track)
-
 
 df = pd.DataFrame(features)
 
@@ -95,7 +92,14 @@ for i in range(len(artists)):
 
 df3 = pd.DataFrame(targets, columns=['target'])
 
-test_df = pd.read_csv('data.csv')
+if(user_id == "p0q8ccwzh5xvxzgq2jtd41abr")
+{
+    test_df = pd.read_csv('data/deven.csv')
+}
+else
+{
+    test_df = pd.read_csv('data/nick.csv')
+}
 
 train_data, test_data = train_test_split(test_df, test_size = .60)
 
@@ -107,7 +111,7 @@ frames2 = [df4, train_data]
 
 df5 = pd.concat(frames2, axis=0, sort=False)
 
-df5.to_csv('user.csv', sep=',', encoding='utf-8')
+df5.to_csv('data/user.csv', sep=',', encoding='utf-8')
 
 attribute_list = ['acousticness', 'danceability', 'duration_ms', 'energy', 'instrumentalness', 'key', 'liveness', 'loudness', 'mode', 'speechiness', 'tempo', 'time_signature', 'valence']
 
