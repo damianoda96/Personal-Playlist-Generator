@@ -24,13 +24,13 @@ sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
 sp.trace = False
 
-#userid = input("Spotify ID: ")
-#user_playlist = input("Playlist ID: ")
+user_id = input("Spotify ID: ")
+user_playlist_id = input("Playlist ID: ")
 
-userid = "p0q8ccwzh5xvxzgq2jtd41abr"
-user_playlist = "57aP0BOe978aT68FeJPFPv"
+#userid = "p0q8ccwzh5xvxzgq2jtd41abr"
+#user_playlist = "57aP0BOe978aT68FeJPFPv"
 
-playlist = sp.user_playlist("p0q8ccwzh5xvxzgq2jtd41abr", "57aP0BOe978aT68FeJPFPv")
+playlist = sp.user_playlist(user_id, user_playlist_id)
 
 #profile_data = sp.current_user()
 
@@ -119,7 +119,7 @@ all_test_data = pd.concat(test_list, axis=0, sort=False)
 
 all_test_data = all_test_data.reset_index(drop=True)
 
-c = tree.DecisionTreeClassifier(min_samples_split=2)
+c = tree.DecisionTreeClassifier(min_samples_split=10)
 
 X_train = train[attribute_list]
 y_train = train['target']
@@ -132,7 +132,25 @@ y_train = train['target']
 
 dt = c.fit(X_train, y_train)
 
+#write tree to file
+
+out_file_joblib_name = (user_id + ".joblib")
+    
+joblib.dump(dt, "models/" + out_file_joblib_name)
+
+out_file_dot_name = (user_id + ".dot")
+
+out_file_png_name = (user_id + ".png")
+
+tree.export_graphviz(dt, out_file=("visuals/" + out_file_dot_name), class_names = True, feature_names = attribute_list)
+    
+#print(classifier_list)
+    
+from subprocess import call
+call(['dot', '-Tpng', ("visuals/" + out_file_dot_name), '-o', ("visuals/" + out_file_png_name), '-Gdpi=600'])
+
 X_test = all_test_data[attribute_list]
+y_test = all_test_data['target']
 
 y_pred = dt.predict(X_test)
 
@@ -140,7 +158,7 @@ counter = 0
 
 print("")
 
-print("SUGGESTED PLAYLIST FOR USER: ", userid)
+print("SUGGESTED PLAYLIST FOR USER: ", user_id)
 
 print("----------------------")
 
