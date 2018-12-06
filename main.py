@@ -1,293 +1,182 @@
-#Semester Project for AI - Deven Damiano - dad152@zips.uakron.edu - Nicholas Horvath - nch16@zips.uakron.edu
+## Deven Damiano and Nick Horvath - AI and Heuristic Programming
 
 import sys
 import numpy as np
 import pandas as pd
-import graphviz
 import random
 from sklearn import tree
-from sklearn import datasets
 from sklearn import svm
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.externals import joblib
 from sklearn.tree import _tree
-from sklearn.preprocessing import OneHotEncoder
+import spotipy
+import spotipy.util as util
+from spotipy.oauth2 import SpotifyClientCredentials
 
-#-------------------OPTION 1--------------------------
+cid = "5ebe28f6cfa44d639ac4b91ef42444bb"
+secret = "adf23eab627f477792d6bc6ca81c8fcd"
 
-def learn_tree():
-    
-    # Additional testing is needed here, trying to cover multiple input methods, user can input a full data table, or individual attributes
-    
-    print("--------------SUBMENU 1--------------")
-    
-    file_name = input("Enter the filename of the dataset: ")
-    
-    try:
-        data = pd.read_csv(file_name)
-    except:
-        print("File not found..")
-        return
-    
-    data_type = "NULL"
+client_credentials_manager = SpotifyClientCredentials(client_id=cid, client_secret=secret)
 
-attribute_list = list(data)
+sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
-    data_type = input("If your data is numerical, enter 1, otherwise, enter 2: ")
+sp.trace = False
+
+#userid = input("Spotify ID: ")
+#user_playlist = input("Playlist ID: ")
+
+userid = "p0q8ccwzh5xvxzgq2jtd41abr"
+user_playlist = "57aP0BOe978aT68FeJPFPv"
+
+playlist = sp.user_playlist("p0q8ccwzh5xvxzgq2jtd41abr", "57aP0BOe978aT68FeJPFPv")
+
+#profile_data = sp.current_user()
+
+songs = playlist["tracks"]["items"]
+tracks = playlist["tracks"]
+
+ids = []
+artists = []
+song_titles = []
+
+#for i in range(len(songs)):
+#ids.append(songs[i]["track"]["id"])
+
+while tracks['next']:
     
-    if(data_type == '1'):
+    tracks = sp.next(tracks)
+    
+    for item in tracks["items"]:
         
-        data_type = "1"
-    
-    else:
-        
-        data_type = "2"
-        data = pd.get_dummies(data)
-        data = data.T.reindex(attribute_list).T.fillna(0)
-
-train, test = train_test_split(data, test_size = .15)
-
-    c = tree.DecisionTreeClassifier(min_samples_split=2)
-    
-    target = input("What label would you like to use as the target value? : ");
-    
-    if(target in attribute_list):
-        
-        attribute_list.remove(target)
-
-    X_train = train[attribute_list]
-    y_train = train[target]
-
-X_test = test[attribute_list]
-y_test = test[target]
-
-test.to_csv('test.csv', sep=',', encoding='utf-8')
-
-    dt = c.fit(X_train, y_train)
-    
-    #classifier_list = data[target].unique()
-    
-    #tree.export_graphviz(dt, out_file='tree.dot', class_names = classifier_list)
-    tree.export_graphviz(dt, out_file='tree.dot', class_names = attribute_list)
-    
-    #print(classifier_list)
-    
-    from subprocess import call
-    call(['dot', '-Tpng', 'tree.dot', '-o', 'tree.png', '-Gdpi=600'])
-    
-    #write tree to file
-    
-    joblib.dump(dt, 'tree.joblib')
-    
-    print("Tree saved as 'tree.joblib'")
-    
-    return target, attribute_list, data_type
-
-#-----------------OPTION 2-------------------------
-
-def test_accuracy(target,attribute_list, data_type):
-    
-    tree = joblib.load('tree.joblib')
-    
-    print("-------------SUBMENU 2---------------")
-    
-    file_name = input("Please enter the file name of testing data: ")
-    
-    try:
-        data = pd.read_csv(file_name)
-    except:
-        print("File not found...")
-        return
-    
-    tree = joblib.load('tree.joblib')
-
-attribute_list.append(target)
-
-if(data_type == '1'):
-    
-    data_type = "1"
-    
-    else:
-        
-        data_type = "2"
-        data = pd.get_dummies(data)
-        data = data.T.reindex(attribute_list).T.fillna(0)
-
-    #train, test = train_test_split(data, test_size = .70)
-
-    attribute_list.remove(target)
-
-X_test = data[attribute_list]
-y_test = data[target]
-
-#accuracy
-
-y_pred = tree.predict(X_test)
-    
-    score = accuracy_score(y_test, y_pred) * 100
-    
-    print("Accuracy: ", score)
-    
-    #confusion matrix
-    
-    print(confusion_matrix(y_test, y_pred))
-
-#-------------------OPTION 3--------------------------
-
-def apply_tree(target, attribute_list):
-    
-    ##this is wrong, run through tree, then give a predicted target value
-    
-    print("-------------SUBMENU 3---------------")
-    
-    tree = joblib.load('tree.joblib')
-    
-    tree_ = tree.tree_
-    feature_name = [
-                    attribute_list[i] if i != _tree.TREE_UNDEFINED else "undefined!"
-                    for i in tree_.feature
-                    ]
-        
-                    value_list = attribute_list
-                    
-                    tree_dict = {}
-                    
-                    def recurse(node, depth):
-                        
-                        if tree_.feature[node] != _tree.TREE_UNDEFINED:
-                            
-                            name = feature_name[node]
-                        
-                            threshold = tree_.threshold[node]
-                            
-                            if name not in tree_dict:
-                                
-                                print(name, ": ")
-                                
-                                value = input()
-                                
-                                    tree_dict[name] = value
-                                        
-                                        if(float(tree_dict[name]) <= float(threshold)):
-                                            
-                                            recurse(tree_.children_left[node], depth + 1)
-                                                
-                                                else:
-                                                    
-                                                    recurse(tree_.children_right[node], depth + 1)
-                                                        
-                                                        else:
-                                                            
-                                                            print("Predicted Result: ", tree.classes_[np.argmax(tree_.value[node])])
-
-recurse(0, 1)
-
-
-#----------------------OPTION 4-----------------------
-
-def load_model():
-    
-    #Load the model and allow the user to enter a case for the tree, then predict an answer
-    
-    print("-------------SUBMENU 4---------------")
-    
-    tree_file = input("Please enter the filename of the tree: ")
-    
-    try:
-        tree = joblib.load(tree_file)
-    except:
-        print("File not found...")
-        return
-
-    tree_ = tree.tree_
-    feature_name = [
-                    attribute_list[i] if i != _tree.TREE_UNDEFINED else "undefined!"
-                    for i in tree_.feature
-                    ]
-
-#value_list = attribute_list
-
-#print(tree.classes_)
-
-tree_dict = {}
-    
-    print(tree.feature_names)
-    
-    def recurse(node, depth):
-        
-        if tree_.feature[node] != _tree.TREE_UNDEFINED:
+        if(item['track']['id'] is not None):
             
-            name = feature_name[node]
+            ids.append(item["track"]["id"])
             
-            threshold = tree_.threshold[node]
+            thing = item["track"]["artists"]
             
-            if name not in tree_dict:
-                
-                print(name, ": ")
-                
-                value = input()
-                
-                tree_dict[name] = value
+            artists.append(thing[0]["name"])
+            
+            song_titles.append(item["track"]["name"])
+
+#print(thing[0]["name"], "- ", item["track"]["name"])
+
+#print(item["track"]["id"])
+#print(item["track"]["artists"])
+
+
+features = []
+
+
+for i in range(0, len(ids), 50):
+    
+    audio_features = sp.audio_features(ids[i:i+50])
+    
+    for track in audio_features:
         
-            if(float(tree_dict[name]) <= float(threshold)):
-                
-                recurse(tree_.children_left[node], depth + 1)
-            
-            else:
-                
-                recurse(tree_.children_right[node], depth + 1)
+        features.append(track)
 
-else:
+
+df = pd.DataFrame(features)
+
+#df.drop(['analysis_url', 'id', 'track_href', 'type', 'uri'], axis=1)
+
+df1 = pd.DataFrame(artists, columns=['artist'])
+
+df2 = pd.DataFrame(song_titles, columns=['song_title'])
+
+targets = []
+
+for i in range(len(artists)):
     
-    print("Predicted Result: ", tree.classes_[np.argmax(tree_.value[node])])
+    targets.append(1)
+
+
+df3 = pd.DataFrame(targets, columns=['target'])
+
+test_df = pd.read_csv('data.csv')
+
+train_data, test_data = train_test_split(test_df, test_size = .60)
+
+frames = [df, df1, df2, df3]
+
+df4 = pd.concat(frames, axis=1)
+
+frames2 = [df4, train_data]
+
+df5 = pd.concat(frames2, axis=0, sort=False)
+
+df5.to_csv('user.csv', sep=',', encoding='utf-8')
+
+attribute_list = ['acousticness', 'danceability', 'duration_ms', 'energy', 'instrumentalness', 'key', 'liveness', 'loudness', 'mode', 'speechiness', 'tempo', 'time_signature', 'valence']
+
+train, test_data_2 = train_test_split(df5, test_size = .15)
+
+test_list = [test_data, test_data_2]
+
+all_test_data = pd.concat(test_list, axis=0, sort=False)
+
+all_test_data = all_test_data.reset_index(drop=True)
+
+c = tree.DecisionTreeClassifier(min_samples_split=2)
+
+X_train = train[attribute_list]
+y_train = train['target']
+
+#X_test = test[attribute_list]
+#y_test = test['target']
+
+#Take the first 500 songs of the original dataset and add to training csv
+#so we have an idea of songs we do not like
+
+dt = c.fit(X_train, y_train)
+
+X_test = all_test_data[attribute_list]
+
+y_pred = dt.predict(X_test)
+
+counter = 0
+
+print("")
+
+print("SUGGESTED PLAYLIST FOR USER: ", userid)
+
+print("----------------------")
+
+for i in range(len(y_pred)):  #for all results
     
-    recurse(0, 1)
+    if(y_pred[i] == 1):
+        
+        row = all_test_data.loc[i]
+        
+        print(row['artist'], '-', row['song_title'])
+        
+        counter = counter + 1
 
-#---------------------------------------------
+    if(counter == 15):
+        
+        break
 
-running = True
+print("----------------------")
+print("")
 
-attribute_list = []
-target = "NULL"
-data_type = "NULL"
+#print(all_test_data)
 
-tree_created = False
-new_cases_created = False
+#get test data artist and song title at that index and print it!!!!
 
-while(running):
-    
-    print("----------------MAIN MENU------------------")
-    print("1. Learn a decision tree and save the tree")
-    print("2. Testing accuracy of the decision tree")
-    print("3. Applying the decision tree to new cases")
-    print("4. Load a tree model and apply to new cases interactively as in menu 3")
-    print("5. Quit")
-    
-    choice = input("Please enter 1-5 to select operation: ")
-    
-    if(choice == "1"):
-        target, attribute_list, data_type = learn_tree()
-        tree_created = True
-    elif(choice == "2"):
-        if(tree_created):
-            test_accuracy(target, attribute_list, data_type)
-        else:
-            print("You must execute option 1 first..")
-    elif(choice == "3"):
-        if(tree_created):
-            apply_tree(target, attribute_list)
-            new_cases_created = True
-        else:
-            print("You must execute option 1 first..")
-    elif(choice == "4"):
-        #if(new_cases_created):
-        load_model()
-    #else:
-    #print("You must execute option 3 first..")
-    elif(choice == "5" or choice == "q"):
-        print("Aborting..")
-        exit()
-    else:
-        print("invalid input")
+#print(y_pred)
+
+##feed a random selections of songs to the tree, if 1, add 10 songs to a playist, then output the playlist
+##should be unique for each user we feed the program
+
+#for i in range(len(y_pred)):
+
+#if(y_pred[i] == 1):
+
+#find connected song title and artist
+
+
+#score = accuracy_score(y_test, y_pred) * 100
+
+#print("Accuracy: ", score)
