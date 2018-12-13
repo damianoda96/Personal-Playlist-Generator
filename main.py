@@ -96,10 +96,13 @@ if(user_id == "p0q8ccwzh5xvxzgq2jtd41abr"):
     
     test_df = pd.read_csv('data/deven.csv')
 
-else:
+elif(user_id == "fue9qtgpihru98kbaz3fdhvxw"):
 
     test_df = pd.read_csv('data/nick.csv')
 
+else:
+
+    test_df = pd.read_csv('data/lexi.csv')
 
 train_data, test_data = train_test_split(test_df, test_size = .60)
 
@@ -127,6 +130,8 @@ c = tree.DecisionTreeClassifier(min_samples_split=10)
 
 X_train = train[attribute_list]
 y_train = train['target']
+
+y_train = y_train.astype('int')
 
 #X_test = test[attribute_list]
 #y_test = test['target']
